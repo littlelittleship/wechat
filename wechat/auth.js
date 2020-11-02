@@ -73,8 +73,38 @@ module.exports = () => {
             // 格式化上面的数据, 同步的方法
             const message = formatMessage(jsData)
             console.log('message:', message);
+            // { ToUserName: 'gh_5ddd24014701',
+            //     FromUserName: 'oCn2N6o8vVN_5AtWiJtltM5VViz0',
+            //     CreateTime: '1604308517',
+            //     MsgType: 'text',
+            //     Content: '/:ok',
+            //     MsgId: '22968177010643948' }
 
-            res.end('')
+            /**
+             * 简单的自动回复,回复文本内容
+             * 一旦遇到以下情况，微信都会在公众号会话中，向用户下发系统提示“该公众号暂时无法提供服务，请稍后再试”：
+             * 1、开发者在5秒内未回复任何内容 2、开发者回复了异常数据，比如JSON数据, 字符串, xml数据中有多个空格 等
+             */
+            let content = '你说什么, 我听不懂'
+            if(message.MsgType === 'text') {
+                if(message.Content === '1') {
+                    content = '大吉大利, 今晚吃鸡'
+                } else if(message.Content === '2') {
+                    content = '落地成盒'
+                } else if(message.Content.match('呵')) {
+                    content = '呵你的头~~'
+                }
+            }
+            let replyMessage = `<xml>
+                <ToUserName><![CDATA[${message.FromUserName}]]></ToUserName>
+                <FromUserName><![CDATA[${message.ToUserName}]]></FromUserName>
+                <CreateTime>${Date.now()}</CreateTime>
+                <MsgType><![CDATA[text]]></MsgType>
+                <Content><![CDATA[${content}]]></Content>
+            </xml>`
+
+            // res.end('')
+            res.send(replyMessage)
         } else {
             res.end('error')
         }
