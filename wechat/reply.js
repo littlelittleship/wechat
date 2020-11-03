@@ -3,7 +3,6 @@
  */
 
  module.exports = message => {
-     console.log('---msg', message)
     let options = {
         toUserName: message.FromUserName,
         fromUserName: message.ToUserName,
