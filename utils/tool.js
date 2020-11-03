@@ -4,6 +4,8 @@
  */
 
  const {parseString} = require('xml2js')
+ const {writeFile, readFile} = require('fs')
+ const {resolve} = require('path')
 
  module.exports = {
     getUserDataAsync(req) {
@@ -47,5 +49,37 @@
             message = {} 
         }
         return message
+    },
+
+    writeFileAsync(data, fileName) {
+        data = JSON.stringify(data)
+        const filePath = resolve(__dirname, fileName)
+        return new Promise((resolve, reject) => {
+            // writeFile是异步方法, 为了保证保存成功, 需要外面包装一层promise
+            writeFile(filePath, data, err => {
+                if(!err) {
+                    console.log('文件保存成功');
+                    resolve();
+                } else {
+                    reject('writeFileAsync时出问题了', err)
+                }
+            })
+        })
+    },
+
+    readFileAsync(fileName) {
+        const filePath = resolve(__dirname, fileName)
+        return new Promise((resolve, reject) => {
+            readFile(filePath, (err, data) => {
+                if(!err) {
+                    // json字符串转化成js对象
+                    data = JSON.parse(data)
+                    console.log('读取文件成功');
+                    resolve(data)
+                } else {
+                    reject('readFileAsync方法出了问题', err)
+                }
+            })
+        })
     }
  }

@@ -19,16 +19,9 @@ module.exports = () => {
          }
             */
         console.log(req.query)
-    
         const {signature, echostr, timestamp, nonce } = req.query
         const { token } = config
         const sha1Str = sha1([timestamp, nonce, token].sort().join(''))
-        // if(sha1Str === signature) {
-        //     res.send(echostr)
-        // } else {
-        //     res.end('error')
-        // }
-
         /**
          * 微信服务器会发送两种类型的消息给开发者服务器
          * 1. get请求
