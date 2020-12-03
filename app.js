@@ -1,6 +1,7 @@
 const express = require('express');
 const sha1 = require('sha1')
 const auth = require('./wechat/auth.js')
+const fs = require('path')
 const WechatApi = require('./wechat/wechat')
 const {url} = require('./config')
 
@@ -10,6 +11,8 @@ const wechatApi = new WechatApi()
 app.set('views', './views')
 // 设置模板引擎
 app.set('view engine', 'ejs')
+
+app.use('/assets', express.static('assets'))
 app.get('/search', async (req,res) => {
     // res.send('这是一个搜索页面')
     /**
@@ -20,11 +23,12 @@ app.get('/search', async (req,res) => {
      * 
      */
     // 获取随机字符串
-    const noncestr = Math.random().split('.')[1]
+    const noncestr = Math.random().toString().split('.')[1]
     // 获取票据
     const {ticket} = await wechatApi.fetchTicket()
     // 时间戳
     const timestamp = Date.now()
+    console.log('noncestr,ticket,timestamp,url', noncestr,ticket,timestamp,url)
 
     const arr = [
         `noncestr=${noncestr}`,
@@ -35,6 +39,7 @@ app.get('/search', async (req,res) => {
 
     const str = arr.sort().join('&')
     const signature = sha1(str)
+    console.log('signature:', signature)
     res.render('search', {
         signature,
         noncestr,

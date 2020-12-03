@@ -36,7 +36,7 @@ const {appID, appsecret} = require('../config')
 const api = require('../utils/api')
 // 引入工具函数
 const {writeFileAsync, readFileAsync} = require('../utils/tool')
-const { resolve } = require('path')
+const {resolve} = require('path')
 // 引入菜单模块
 const menu = require('./menu')
 

@@ -6,6 +6,143 @@
     <title>Document</title>
 </head>
 <body>
-    <h1>搜索呵呵呵</h1>
+    <h1 id="search">搜索最近上映的电影</h1>
+    <div class="constent">
+        <ul id="list"></ul>
+    </div>
+    <!-- <div class="head">这是head</div> -->
+    <!-- 这里注意引入的zepto版本 -->
+    <script src="https://cdn.bootcdn.net/ajax/libs/zepto/1.0rc1/zepto.min.js"></script>
+    <!-- <script src="https://cdn.bootcdn.net/ajax/libs/zepto/1.2.0/zepto.js"></script> -->
+    <script src="/assets/template/template.js"></script>
+    <script type="text/javascript" src="http://res.wx.qq.com/open/js/jweixin-1.6.0.js"></script>
+    <!-- <script type="text/template" id="itemlist"> -->
+    <script type="text/template" id='itemlist'>
+        {{each data as value}}
+            <img src={{value.cover.url}} alt="封面">
+            <div class="title">{{value.title}}</div>
+            <div class="type">{{value.info}}</div>
+            <div class="actor">{{value.directors}}</div>
+            <div class="detail"><a href={{value.url}}>点击进入详情</a></div>
+        {{/each}}
+        </script>
+    <script>
+        /**
+         * 1. 绑定域名
+         *  在接口测试号页面填写js安全域名接口
+         * 2. 引入js文件
+         *  http://res.wx.qq.com/open/js/jweixin-1.6.0.js
+         * 3. 通过config接口注入权限配置
+        */
+        wx.config({
+            debug: true, // 开启调试模式,调用的所有api的返回值会在客户端alert出来，若要查看传入的参数，可以在pc端打开，参数信息会通过log打出，仅在pc端时才会打印。
+            appId: 'wxb11c51bad2e60a65', // 必填，公众号的唯一标识
+            timestamp: '<%= timestamp %>', // 必填，生成签名的时间戳
+            nonceStr: '<%= noncestr %>', // 必填，生成签名的随机串
+            signature: '<%= signature %>',// 必填，签名
+            jsApiList: [
+                'onMenuShareQQ',
+                'onMenuShareQZone',
+                'startRecord',
+                'stopRecord',
+                'translateVoice'
+            ] // 必填，需要使用的JS接口列表
+        });
+
+        // jssdk验证通过的回调
+        wx.ready(function(){
+            console.log('成功了')
+            // config信息验证后会执行ready方法，所有接口调用都必须在config接口获得结果之后，config是一个客户端的异步操作，所以如果需要在页面加载时就调用相关接口，则须把相关接口放在ready函数中调用来确保正确执行。对于用户触发时才调用的接口，则可以直接调用，不需要放在ready函数中。
+            wx.checkJsApi({
+                jsApiList: [
+                    'onMenuShareQQ',
+                    'onMenuShareQZone',
+                    'startRecord',
+                    'stopRecord',
+                    'translateVoice'], // 需要检测的JS接口列表，所有JS接口列表见附录2,
+                success: function(res) {
+                    // 以键值对的形式返回，可用的api值true，不可用为false
+                    // 如：{"checkResult":{"chooseImage":true},"errMsg":"checkJsApi:ok"}
+                    console.log('success:', res)
+                },
+                fail: function(res) {
+                    console.log('fail:', res)
+                }
+            })
+
+            // 实现按一下开始录音, 在按一下, 结束录音
+            var isRecord = false
+            // 语音识别功能, 已经导入的zepto
+            console.log('$:', $("#search"))
+            $("#search").tap(function() {
+                var url = 'https://frodo.douban.com/api/v2/subject_collection/movie_showing/items?start=1&count=10&apiKey=054022eaeae0b00e0fc068c0c0a2102a&callback=?'
+                $.getJSON(url, function(data) {
+                    let { subject_collection_items } = data
+                    console.log('subject_collection_items: ', subject_collection_items)
+                    var html = template('itemlist', {data: subject_collection_items})
+                    $('#list').html(html)
+                    wx.onMenuShareQQ({
+                        title: subject_collection_items[0].title, // 分享标题
+                        desc: subject_collection_items[0].info, // 分享描述
+                        link: subject_collection_items[0].url, // 分享链接
+                        imgUrl: subject_collection_items[0].cover.url, // 分享图标
+                        success: function () {
+                        // 用户确认分享后执行的回调函数
+                            alert('分享成功')
+                        },
+                        cancel: function () {
+                        // 用户取消分享后执行的回调函数
+                            alert('gg')
+                        }
+                    });
+                })
+            })
+
+           
+            // $("#search").tap(function() {
+            //     console.log('112233')
+            //     if(!isRecord) {
+            //         wx.startRecord()
+            //         isRecord = true
+            //     } else {
+            //         wx.stopRecord({
+            //             success: function(res) {
+            //                 // 录音结束后, 会自动上传录音到微信服务器, 微信服务器会返回一个id给开发者
+            //                 var localId = res.localId
+            //                 // 将录音转化成文字
+            //                 // wx.translateVoice({
+            //                 //     localId: localId, // 需要识别的音频的本地Id，由录音相关接口获得
+            //                 //     isShowProgressTips: 1, // 默认为1，显示进度提示
+            //                 //     success: function (res) {
+            //                 //         alert(res.translateResult); // 语音识别的结果
+            //                 //     }
+            //                 // });
+            //                 // isRecord = false
+
+            //                 // 模拟结果, 去豆瓣请求相应的电影数据
+            //                 // /v2/movie/search?q={text}
+            //                 // 搜索电影名称  http://api.douban.com/v2/movie/search?q={魔戒}
+            //                 var url = 'https://frodo.douban.com/api/v2/subject_collection/movie_showing/items?start=1&count=10&apiKey=054022eaeae0b00e0fc068c0c0a2102a&callback=?'
+            //                 $.getJSON(url, function(data) {
+            //                     console.log('data:', data)
+            //                     const { subject_collection_items } = data
+            //                     var html = template('itemlist', subject_collection_items)
+            //                     $('#list').html(html)
+            //                 })
+
+            //             }
+            //         })
+            //     }
+            // })
+
+        });
+
+        // jssdk验证未通过的回调
+        wx.error(function(res){
+            // config信息验证失败会执行error函数，如签名过期导致验证失败，具体错误信息可以打开config的debug模式查看，也可以在返回的res参数中查看，对于SPA可以在这里更新签名。
+        });
+
+    </script>
+    
 </body>
 </html>

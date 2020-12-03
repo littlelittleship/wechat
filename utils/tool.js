@@ -74,7 +74,7 @@
                 if(!err) {
                     // json字符串转化成js对象
                     data = JSON.parse(data)
-                    console.log('读取文件成功');
+                    // console.log('读取文件成功');
                     resolve(data)
                 } else {
                     reject('readFileAsync方法出了问题', err)
